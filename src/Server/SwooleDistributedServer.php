@@ -7,6 +7,7 @@ use Server\Asyn\IAsynPool;
 use Server\Asyn\MQTT\Utility;
 use Server\Asyn\Mysql\Miner;
 use Server\Asyn\Mysql\MysqlAsynPool;
+use Server\Asyn\Pgsql\PgsqlAsynPool;
 use Server\Asyn\Redis\RedisAsynPool;
 use Server\Asyn\Redis\RedisLuaManager;
 use Server\Components\Backstage\BackstageProcess;
@@ -52,6 +53,10 @@ abstract class SwooleDistributedServer extends SwooleWebSocketServer
      * @var MysqlAsynPool
      */
     public $mysql_pool;
+    /**
+     * @var MysqlAsynPool
+     */
+    public $pgsql_pool;
     /**
      * 404缓存.
      *
@@ -168,6 +173,16 @@ abstract class SwooleDistributedServer extends SwooleWebSocketServer
     public function getMysql()
     {
         return $this->mysql_pool->getSync();
+    }
+
+    /**
+     * 获取同步mysql.
+     *
+     * @return Miner
+     */
+    public function getPgsql()
+    {
+        return $this->pgsql_pool->getSync();
     }
 
     /**
@@ -742,6 +757,9 @@ abstract class SwooleDistributedServer extends SwooleWebSocketServer
         }
         if ($this->config->get('mysql.enable', true)) {
             $this->addAsynPool('mysqlPool', new MysqlAsynPool($this->config, $this->config->get('mysql.active')));
+        }
+        if ($this->config->get('pgsql.enable', true)) {
+            $this->addAsynPool('pgsqlPool', new PgsqlAsynPool($this->config, $this->config->get('pgsql.active')));
         }
         if ($this->config->get('error.dingding_enable', false)) {
             $this->addAsynPool('dingdingRest', new HttpClientPool($this->config, $this->config->get('error.dingding_url')));

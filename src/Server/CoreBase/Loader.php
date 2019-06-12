@@ -11,6 +11,7 @@ namespace Server\CoreBase;
 
 use Server\Asyn\Mysql\Miner;
 use Server\Asyn\Mysql\MysqlAsynPool;
+use Server\Asyn\Pgsql\PgsqlAsynPool;
 use Server\Asyn\Redis\RedisAsynPool;
 use Server\Components\AOP\AOP;
 use Server\Memory\Pool;
@@ -75,6 +76,34 @@ class Loader implements ILoader
         $mysql_pool = get_instance()->getAsynPool($name);
         if($mysql_pool == null) return null;
         $db = $mysql_pool->installDbBuilder();
+        $db->setContext($root->getContext());
+        $root->addChild($db);
+        return $db;
+    }
+
+    /**
+     * 获取一个pgsql
+     * @param $name
+     * @param Child $parent
+     * @return Miner
+     */
+    public function pgsql($name, Child $parent)
+    {
+        if (empty($name)) {
+            return null;
+        }
+        if($parent->root == null){
+            $parent->root = $parent;
+        }
+        $root = $parent->root;
+        $core_name = PgsqlAsynPool::AsynName . ":" .$name;
+
+        if ($root->hasChild($core_name)) {
+            return $root->getChild($core_name);
+        }
+        $pgsql_pool = get_instance()->getAsynPool($name);
+        if($pgsql_pool == null) return null;
+        $db = $pgsql_pool->installDbBuilder();
         $db->setContext($root->getContext());
         $root->addChild($db);
         return $db;
